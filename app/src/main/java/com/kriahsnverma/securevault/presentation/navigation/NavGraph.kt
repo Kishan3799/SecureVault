@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kriahsnverma.securevault.presentation.screens.AddPasswordScreen
+import com.kriahsnverma.securevault.presentation.screens.ChangeMasterPasswordScreen
 import com.kriahsnverma.securevault.presentation.screens.HomeDashboardScreen
 import com.kriahsnverma.securevault.presentation.screens.HomeScreen
 import com.kriahsnverma.securevault.presentation.screens.OnboardingScreen
@@ -42,6 +43,8 @@ sealed class Screen(val route: String) {
         // A helper function to build the route with an actual ID
         fun createRoute(passwordId: Int) = "detail_password_screen/$passwordId"
     }
+
+    object ChangeMasterPasswordScreen : Screen("change_master_password_screen")
 }
 
 // --- 2. The main entry point for your app's UI ---
@@ -141,6 +144,15 @@ fun RootNavGraph(navController: NavHostController = rememberNavController()) {
                 onDeleted = { navController.popBackStack() }
             )
         }
+
+        composable(Screen.ChangeMasterPasswordScreen.route) {
+            ChangeMasterPasswordScreen(
+                onBack = {navController.popBackStack()},
+                onSuccess = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
 
@@ -166,7 +178,9 @@ fun DashboardNavGraph(
         composable(BottomNavRoute.Settings.route) {
             VaultSettingScreen(
                 onBack = { dashboardNavController.popBackStack() },
-                onChangeMasterPassword = {},
+                onChangeMasterPassword = {
+                    appNavController.navigate(Screen.ChangeMasterPasswordScreen.route)
+                },
                 onAutoLockClick = {},
                 onThemeClick = {},
                 onBackupRestoreClick = {},

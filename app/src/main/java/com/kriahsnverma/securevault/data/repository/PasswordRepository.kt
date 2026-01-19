@@ -2,6 +2,7 @@ package com.kriahsnverma.securevault.data.repository
 
 import com.kriahsnverma.securevault.data.local.PasswordEntity
 import kotlinx.coroutines.flow.Flow
+import javax.crypto.SecretKey
 
 interface PasswordRepository {
     suspend fun addPassword(title: String,
@@ -24,6 +25,8 @@ interface PasswordRepository {
 
 
     suspend fun deletePasswordById(id:Int)
+
+    suspend fun reEncryptAllData(oldKey: SecretKey, newKey: SecretKey)
 }
 
 

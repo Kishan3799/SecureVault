@@ -5,13 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kriahsnverma.securevault.core.util.InactivityManager
 import com.kriahsnverma.securevault.core.util.VaultLockManager
 import com.kriahsnverma.securevault.presentation.navigation.RootNavGraph
+import com.kriahsnverma.securevault.presentation.viewmodel.VaultSettingViewModel
 import com.kriahsnverma.securevault.ui.theme.SecureVaultTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -29,6 +34,13 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
+            val viewModel : VaultSettingViewModel= hiltViewModel()
+            val currentTheme by viewModel.appTheme.collectAsState()
+            val darkTheme = when(currentTheme) {
+                "Light" -> false
+                "Dark" -> true
+                else -> isSystemInDarkTheme()
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -38,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         })
                     }
             )
-            SecureVaultTheme {
+            SecureVaultTheme(darkTheme = darkTheme) {
                 RootNavGraph()
             }
         }

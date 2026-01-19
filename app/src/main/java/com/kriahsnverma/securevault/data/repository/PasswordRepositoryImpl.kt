@@ -5,6 +5,8 @@ import com.kriahsnverma.securevault.core.crypto.MasterKeyHolder
 import com.kriahsnverma.securevault.data.local.PasswordDao
 import com.kriahsnverma.securevault.data.local.PasswordEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.forEach
+import javax.crypto.SecretKey
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -80,6 +82,19 @@ class PasswordRepositoryImpl @Inject constructor(
 
     override suspend fun deletePasswordById(id: Int) {
         dao.deletePasswordById(id)
+    }
+
+    override suspend fun reEncryptAllData(oldKey: SecretKey, newKey: SecretKey) {
+        val allEntries = dao.getPasswords()
+
+        allEntries.collect { entities ->
+            entities.forEach { entity ->
+                val decryptedPlainText = cryptoManager.decrypt(entity.encryptedPassword, oldKey)
+                val newlyEncryptedSecret = cryptoManager.encrypt(decryptedPlainText, newKey)
+
+                dao.updatePassword(entity.copy(encryptedPassword = newlyEncryptedSecret))
+            }
+        }
     }
 
 
