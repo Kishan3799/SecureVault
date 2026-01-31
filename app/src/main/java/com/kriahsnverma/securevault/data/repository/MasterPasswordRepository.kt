@@ -34,6 +34,8 @@ interface MasterPasswordRepository {
      * @return The derived SecretKey for cryptographic operations.
      */
     suspend fun generateMasterKey(password: String): SecretKey
+
+//    suspend fun updateMasterPasswordWithSalt(newPassword: String, newSalt: ByteArray?)
 }
 
 

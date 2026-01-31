@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.security.SecureRandom
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,39 +42,24 @@ class ChangeMasterPasswordViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             isLoading = true
             try {
-                // 1. Validate the old password
-                val isValid = masterRepository.validateMasterPassword(oldPassword)
-                if (!isValid) {
-                    withContext(Dispatchers.Main) { error = "Current password is incorrect" }
-                    return@launch
-                }
-
-                // 2. Generate the OLD key (needed to decrypt current data)
+                // STEP 1: Generate the OLD KEY while the old hash/salt is still in the DB
                 val oldKey = masterRepository.generateMasterKey(oldPassword)
 
-                // 3. To generate the NEW key, we first need to save the new password
-                // because EncryptionUtils/MasterPasswordRepository derives the key
-                // based on the SALT stored in the BCrypt hash.
-
-                // Step A: Hash and save new master password
+                // STEP 2: Save the NEW password (this generates a NEW salt in the DB)
                 masterRepository.saveNewMasterPassword(newPassword)
 
-                // Step B: Generate the NEW key from the new hash/salt
+                // STEP 3: Generate the NEW KEY using the new salt now in the DB
                 val newKey = masterRepository.generateMasterKey(newPassword)
 
-                // 4. Migrate all data to the new key
+                // STEP 4: Now re-encrypt
                 passwordRepository.reEncryptAllData(oldKey, newKey)
 
-                // 5. Update the Session Key in memory so the user isn't logged out
+                // STEP 5: Update session
                 MasterKeyHolder.setKey(newKey)
 
-                withContext(Dispatchers.Main) {
-                    onSuccess()
-                }
+                withContext(Dispatchers.Main) { onSuccess() }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    error = e.localizedMessage ?: "An unexpected error occurred"
-                }
+                withContext(Dispatchers.Main) { error = "Decryption Failed: Check current password" }
             } finally {
                 isLoading = false
             }

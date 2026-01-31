@@ -1,148 +1,160 @@
 package com.kriahsnverma.securevault.presentation.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kriahsnverma.securevault.presentation.viewmodel.UnlockViewModel
-import com.kriahsnverma.securevault.ui.theme.SecureVaultTheme
+import com.kriahsnverma.securevault.presentation.viewmodel.VaultSettingViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnlockScreen(
     onUnlocked: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: UnlockViewModel = hiltViewModel(),
+    settingsViewModel: VaultSettingViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current as FragmentActivity
+    val uiState = viewModel.uiState
+    val biometricEnabled by settingsViewModel.biometricEnabled.collectAsState()
+    var passwordVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.unlockedEvent.collect {
             onUnlocked()
         }
     }
 
-    val uiState = viewModel.uiState
-
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)){
-        Icon(
-            imageVector = Icons.Outlined.Lock,
-            contentDescription = null, // Decorative icon
-            modifier = Modifier
-                .size(250.dp)
-                .align(Alignment.Center)
-                .alpha(0.1f), // Reduced alpha for subtlety
-            // Use a color that works on the background
-            tint = MaterialTheme.colorScheme.primary
-        )
-
-        Column (
+    Scaffold(
+        containerColor = Color(0xFF0A1F1A) // Dark greenish background
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            Text(
-                "Unlock Vault",
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp)
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            // Large Lock Icon in Background (Semi-transparent)
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.05f),
+                modifier = Modifier.size(300.dp)
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                Text(
+                    text = "Unlock Vault",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                // Password Field
                 OutlinedTextField(
                     value = viewModel.password,
                     onValueChange = { viewModel.onPasswordChange(it) },
-                    label = { Text("Master Password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    // Disable field while loading
-                    enabled = !uiState.isLoading,
-                    isError = uiState.error != null
+                    placeholder = { Text("Master Password", color = Color.Gray) },
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = null,
+                                tint = Color.Gray
+                            )
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color(0xFF143D34).copy(alpha = 0.5f),
+                        unfocusedContainerColor = Color(0xFF143D34).copy(alpha = 0.5f),
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
 
-                uiState.error?.let {
+                if (uiState.error != null) {
                     Text(
-                        text = it,
+                        text = uiState.error,
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                if(uiState.isLoading){
-                    CircularProgressIndicator()
-                }else{
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                // Unlock Button
+                Button(
+                    onClick = { viewModel.onUnlockClicked() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF00C49A),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !uiState.isLoading
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Unlock Vault", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                }
+
+                if (biometricEnabled) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Biometric Button
+                    OutlinedButton(
+                        onClick = { viewModel.onBiometricUnlockClicked(context) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            width = 1.dp
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Button(
-                            onClick = { viewModel.onUnlockClicked() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            // Disable button when loading is handled by the parent Column
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Unlock")
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // Biometric Button
-                        Button(
-                            onClick = { /* TODO: Implement Biometric Logic */ },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Use Biometric")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Fingerprint, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Use Biometrics")
                         }
                     }
                 }
@@ -150,16 +162,3 @@ fun UnlockScreen(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-private fun UnlockScreenPreview() {
-    SecureVaultTheme {
-        UnlockScreen(onUnlocked = {}, onNavigateBack = {})
-    }
-}
-
-
-
-
-

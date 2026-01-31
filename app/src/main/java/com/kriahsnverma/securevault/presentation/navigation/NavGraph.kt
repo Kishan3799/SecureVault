@@ -3,8 +3,6 @@ package com.kriahsnverma.securevault.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,26 +10,28 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.kriahsnverma.securevault.core.util.VaultLockManager
 import com.kriahsnverma.securevault.presentation.screens.AddPasswordScreen
 import com.kriahsnverma.securevault.presentation.screens.ChangeMasterPasswordScreen
 import com.kriahsnverma.securevault.presentation.screens.HomeDashboardScreen
-import com.kriahsnverma.securevault.presentation.screens.HomeScreen
 import com.kriahsnverma.securevault.presentation.screens.OnboardingScreen
 import com.kriahsnverma.securevault.presentation.screens.PasswordDetailScreen
 import com.kriahsnverma.securevault.presentation.screens.PasswordGeneratorScreen
 import com.kriahsnverma.securevault.presentation.screens.SetupMasterPasswordScreen
 import com.kriahsnverma.securevault.presentation.screens.SplashScreen
 import com.kriahsnverma.securevault.presentation.screens.UnlockScreen
+import com.kriahsnverma.securevault.presentation.screens.AutoUnlockScreen
 import com.kriahsnverma.securevault.presentation.screens.VaultScreen
 import com.kriahsnverma.securevault.presentation.screens.VaultSettingScreen
-import com.kriahsnverma.securevault.presentation.viewmodel.SetupMasterPasswordViewModel
 import com.kriahsnverma.securevault.presentation.viewmodel.SplashViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 // --- 1. Cleaned up Screen definitions ---
 sealed class Screen(val route: String) {
     object OnboardingScreen : Screen("onboarding_screen")
     object SetupMasterPasswordScreen : Screen("setup_master_password_screen")
     object UnlockScreen : Screen("unlock_screen")
+    object AutoUnlockScreen : Screen("auto_unlock_screen")
     object HomeDashboardScreen : Screen("home_dashboard_screen")
 
     object AddPasswordScreen : Screen("add_password_screen?passwordId={passwordId}") {
@@ -49,7 +49,10 @@ sealed class Screen(val route: String) {
 
 // --- 2. The main entry point for your app's UI ---
 @Composable
-fun RootNavGraph(navController: NavHostController = rememberNavController()) {
+fun RootNavGraph(
+    navController: NavHostController = rememberNavController(),
+    vaultLockManager: VaultLockManager
+) {
 
     val splashViewModel: SplashViewModel = hiltViewModel()
     val startDestination by splashViewModel.startDestination.collectAsState()
@@ -111,9 +114,22 @@ fun RootNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
 
+        composable(Screen.AutoUnlockScreen.route) {
+            AutoUnlockScreen(
+                onUnlocked = {
+                    navController.navigate(Screen.HomeDashboardScreen.route) {
+                        popUpTo(Screen.AutoUnlockScreen.route) { inclusive = true }
+                    }
+                },
+                onNavigateToPasswordUnlock = {
+                    navController.navigate(Screen.UnlockScreen.route)
+                }
+            )
+        }
+
         // The main part of your application after authentication
         composable(Screen.HomeDashboardScreen.route) {
-            HomeDashboardScreen(appNavController = navController)
+            HomeDashboardScreen(appNavController = navController, vaultLockManager = vaultLockManager)
         }
 
         composable(
@@ -126,7 +142,8 @@ fun RootNavGraph(navController: NavHostController = rememberNavController()) {
             )
         ) {
             AddPasswordScreen(
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStack() },
+                vaultLockManager = vaultLockManager
                 // `onSave` logic is handled inside its ViewModel
             )
         }
@@ -163,6 +180,7 @@ fun DashboardNavGraph(
     appNavController: NavHostController,
     onNavigateToUnlock: () -> Unit,
     onNavigateToAddPassword: () -> Unit,
+    vaultLockManager: VaultLockManager
 ) {
     NavHost(dashboardNavController, startDestination = BottomNavRoute.Home.route) {
         composable(BottomNavRoute.Home.route) {
@@ -177,14 +195,12 @@ fun DashboardNavGraph(
         }
         composable(BottomNavRoute.Settings.route) {
             VaultSettingScreen(
-                onBack = { dashboardNavController.popBackStack() },
                 onChangeMasterPassword = {
                     appNavController.navigate(Screen.ChangeMasterPasswordScreen.route)
                 },
-                onAutoLockClick = {},
-                onThemeClick = {},
                 onBackupRestoreClick = {},
-                onAboutClick = {}
+                onAboutClick = {},
+                vaultLockManager = vaultLockManager
             )
         }
     }

@@ -3,8 +3,6 @@ package com.kriahsnverma.securevault.presentation.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,10 +11,10 @@ import com.kriahsnverma.securevault.core.util.VaultLockManager
 import com.kriahsnverma.securevault.data.usecase.UnlockVaultUseCase
 import com.kriahsnverma.securevault.presentation.util.BiometricAuthManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class UnlockUiState(
     val isLoading: Boolean = false,
@@ -78,17 +76,21 @@ class UnlockViewModel @Inject constructor(
         biometricAuthManager.showBiometricPrompt(
             activity = activity,
             onSuccess = {
-                // 1. This is where you set the Master Key
-                // Note: In a real production app, the SecretKey should be
-                // retrieved from the CryptoObject passed in result.
-                // For now, we assume your MasterKey logic handles retrieval.
+                // 1. Restore the key from cache so it's available for decryption
+                val restored = MasterKeyHolder.restoreFromBiometric()
+                
+                if (restored) {
+                    // 2. Update the vault state
+                    vaultLockManager.unlock()
 
-                // 2. Update the vault state
-                vaultLockManager.unlock()
-
-                // 3. Trigger navigation to Dashboard
-                viewModelScope.launch {
-                    _unlockedEvent.send(Unit)
+                    // 3. Trigger navigation
+                    viewModelScope.launch {
+                        _unlockedEvent.send(Unit)
+                    }
+                } else {
+                    // This happens if the app process was killed and cache is gone.
+                    // The user must use their password.
+                    uiState = uiState.copy(error = "Biometric session expired. Please use Master Password.")
                 }
             },
             onError = { errorMessage ->

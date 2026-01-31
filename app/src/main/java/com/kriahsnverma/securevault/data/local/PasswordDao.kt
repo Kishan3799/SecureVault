@@ -17,6 +17,9 @@ interface PasswordDao {
     @Query("SELECT * FROM passwords ORDER BY id DESC")
     fun getPasswords(): Flow<List<PasswordEntity>>
 
+    @Query("SELECT * FROM passwords")
+    suspend fun getAllPasswordsSync(): List<PasswordEntity>
+
     @Query("SELECT * FROM passwords WHERE id = :id")
     suspend fun getPasswordById(id: Int): PasswordEntity?
 

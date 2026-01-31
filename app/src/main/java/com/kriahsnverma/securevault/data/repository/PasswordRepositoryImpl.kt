@@ -1,19 +1,17 @@
 package com.kriahsnverma.securevault.data.repository
 
-import com.kriahsnverma.securevault.core.crypto.CryptoUtils
+import com.kriahsnverma.securevault.core.crypto.EncryptionUtils
 import com.kriahsnverma.securevault.core.crypto.MasterKeyHolder
 import com.kriahsnverma.securevault.data.local.PasswordDao
 import com.kriahsnverma.securevault.data.local.PasswordEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.forEach
 import javax.crypto.SecretKey
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class PasswordRepositoryImpl @Inject constructor(
-    private val dao: PasswordDao,
-    private val cryptoManager: CryptoUtils
+    private val dao: PasswordDao
 ) : PasswordRepository {
 
     override suspend fun addPassword(
@@ -24,11 +22,11 @@ class PasswordRepositoryImpl @Inject constructor(
         url: String?,
         category: String
     ) {
-        val key = MasterKeyHolder.get()
+        val key = MasterKeyHolder.get() ?: throw IllegalStateException("Vault is Locked")
 
-        val encryptedPassword = cryptoManager.encrypt(
+        val encryptedPassword = EncryptionUtils.encrypt(
             plainPassword,
-            key!!
+            key
         )
 
         dao.insertPassword(
@@ -61,7 +59,7 @@ class PasswordRepositoryImpl @Inject constructor(
         category: String,
     ) {
         val key = MasterKeyHolder.get() ?: throw IllegalStateException("Vault is Locked")
-        val encryptedPassword = cryptoManager.encrypt(
+        val encryptedPassword = EncryptionUtils.encrypt(
             plainPassword,
             key
         )
@@ -77,7 +75,6 @@ class PasswordRepositoryImpl @Inject constructor(
         )
 
         dao.updatePassword(updatedEntity)
-
     }
 
     override suspend fun deletePasswordById(id: Int) {
@@ -85,17 +82,19 @@ class PasswordRepositoryImpl @Inject constructor(
     }
 
     override suspend fun reEncryptAllData(oldKey: SecretKey, newKey: SecretKey) {
-        val allEntries = dao.getPasswords()
+        val allEntries = dao.getAllPasswordsSync()
 
-        allEntries.collect { entities ->
-            entities.forEach { entity ->
-                val decryptedPlainText = cryptoManager.decrypt(entity.encryptedPassword, oldKey)
-                val newlyEncryptedSecret = cryptoManager.encrypt(decryptedPlainText, newKey)
+        allEntries.forEach { entity ->
+            try {
+                val decryptedPlainText = EncryptionUtils.decrypt(entity.encryptedPassword, oldKey)
+                val newlyEncryptedSecret = EncryptionUtils.encrypt(decryptedPlainText, newKey)
 
                 dao.updatePassword(entity.copy(encryptedPassword = newlyEncryptedSecret))
+            } catch (e: Exception) {
+                // Log error or handle it - if one fails, we might want to know why, 
+                // but usually this happens if the oldKey is wrong.
+                e.printStackTrace()
             }
         }
     }
-
-
 }
