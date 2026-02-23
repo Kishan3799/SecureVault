@@ -1,5 +1,6 @@
 package com.kriahsnverma.securevault.presentation.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,49 +30,49 @@ import com.kriahsnverma.securevault.domain.model.OnboardingPageItem
 @Composable
 fun OnboardingPageContent(page: OnboardingPageItem) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 2. Image/Illustration Placeholder
+        // Image/Illustration
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1f) // Ensure it's a square as shown
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondary)
-                .padding(32.dp),
+                .aspectRatio(1.2f)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
-            // Placeholder for an icon or a more complex illustration
-//            Icon(
-//                imageVector = ,
-//                contentDescription = "Illustration Placeholder",
-//                tint = Color(0xFFAAAAAA),
-//                modifier = Modifier.size(64.dp)
-//            )
+            Image(
+                painter = painterResource(id = page.image),
+                contentDescription = null,
+                modifier = Modifier.size(350.dp),
+                contentScale = ContentScale.Crop
+            )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // 3. Title Text
+        // Title Text
         Text(
             text = page.title,
-            color = Color.White,
-            fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. Subtitle Text
+        // Subtitle Text
         Text(
             text = page.description,
-            color = Color.White.copy(alpha = 0.7f), // Lighter text color
-            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(0.9f) // Slightly narrower width
+            modifier = Modifier.fillMaxWidth(0.9f)
         )
     }
 }

@@ -1,7 +1,6 @@
 package com.kriahsnverma.securevault.presentation.screens
 
-
-
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -11,8 +10,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -23,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kriahsnverma.securevault.presentation.viewmodel.ChangeMasterPasswordViewModel
-
+import com.kriahsnverma.securevault.ui.theme.SecureVaultTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +42,8 @@ fun ChangeMasterPasswordScreen(
                     }
                 }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -143,3 +141,18 @@ fun ChangeMasterPasswordScreen(
     }
 }
 
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun ChangeMasterPasswordPreview() {
+    SecureVaultTheme {
+        ChangeMasterPasswordScreen(onBack = {}, onSuccess = {})
+    }
+}
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ChangeMasterPasswordPreviewDark() {
+    SecureVaultTheme {
+        ChangeMasterPasswordScreen(onBack = {}, onSuccess = {})
+    }
+}

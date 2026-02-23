@@ -1,5 +1,6 @@
 package com.kriahsnverma.securevault.presentation.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,21 +15,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kriahsnverma.securevault.presentation.viewmodel.UnlockViewModel
 import com.kriahsnverma.securevault.presentation.viewmodel.VaultSettingViewModel
+import com.kriahsnverma.securevault.ui.theme.SecureVaultTheme
+import com.kriahsnverma.securevault.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnlockScreen(
     onUnlocked: () -> Unit,
-    onNavigateBack: () -> Unit,
     viewModel: UnlockViewModel = hiltViewModel(),
     settingsViewModel: VaultSettingViewModel = hiltViewModel()
 ) {
@@ -44,7 +48,7 @@ fun UnlockScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF0A1F1A) // Dark greenish background
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -54,9 +58,9 @@ fun UnlockScreen(
         ) {
             // Large Lock Icon in Background (Semi-transparent)
             Icon(
-                imageVector = Icons.Default.Lock,
+                painter = painterResource(R.drawable.splashicon),
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.05f),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
                 modifier = Modifier.size(300.dp)
             )
 
@@ -69,7 +73,7 @@ fun UnlockScreen(
             ) {
                 Text(
                     text = "Unlock Vault",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -81,24 +85,21 @@ fun UnlockScreen(
                     value = viewModel.password,
                     onValueChange = { viewModel.onPasswordChange(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Master Password", color = Color.Gray) },
+                    label = { Text("Master Password") },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = null,
-                                tint = Color.Gray
+                                contentDescription = null
                             )
                         }
                     },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color(0xFF143D34).copy(alpha = 0.5f),
-                        unfocusedContainerColor = Color(0xFF143D34).copy(alpha = 0.5f),
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     ),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -108,6 +109,7 @@ fun UnlockScreen(
                     Text(
                         text = uiState.error,
                         color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
@@ -121,14 +123,17 @@ fun UnlockScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00C49A),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !uiState.isLoading
                 ) {
                     if (uiState.isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
                     } else {
                         Text("Unlock Vault", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
@@ -143,12 +148,6 @@ fun UnlockScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.White
-                        ),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            width = 1.dp
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -160,5 +159,25 @@ fun UnlockScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun UnlockScreenPreview() {
+    SecureVaultTheme {
+        UnlockScreen(
+            onUnlocked = {}
+        )
+    }
+}
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun UnlockScreenPreviewDark() {
+    SecureVaultTheme {
+        UnlockScreen(
+            onUnlocked = {}
+        )
     }
 }

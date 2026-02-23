@@ -1,6 +1,8 @@
 package com.kriahsnverma.securevault.presentation.screens
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VpnKey
@@ -52,6 +55,7 @@ fun VaultSettingScreen(
     onChangeMasterPassword: () -> Unit,
     onBackupRestoreClick: () -> Unit,
     onAboutClick: () -> Unit,
+    onHelpClick: () -> Unit,
     viewModel: VaultSettingViewModel = hiltViewModel(),
     vaultLockManager: VaultLockManager
 ) {
@@ -63,6 +67,67 @@ fun VaultSettingScreen(
 
     var showThemeDialog by remember { mutableStateOf(false) }
     var showAutoLockDialog by remember { mutableStateOf(false) }
+    var showBackupRestoreDialog by remember { mutableStateOf(false) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            viewModel.exportVault(
+                context = context,
+                uri = it,
+                onSuccess = { Toast.makeText(context, "Vault exported successfully", Toast.LENGTH_SHORT).show() },
+                onError = { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
+            )
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            viewModel.importVault(
+                context = context,
+                uri = it,
+                onSuccess = { Toast.makeText(context, "Vault imported successfully", Toast.LENGTH_SHORT).show() },
+                onError = { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
+            )
+        }
+    }
+
+    if (showBackupRestoreDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackupRestoreDialog = false },
+            title = { Text("Backup & Restore") },
+            text = {
+                Column {
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            exportLauncher.launch("SecureVault_Backup.json")
+                            showBackupRestoreDialog = false
+                        }
+                    ) {
+                        Text("Export Vault (JSON)")
+                    }
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            importLauncher.launch(arrayOf("application/json"))
+                            showBackupRestoreDialog = false
+                        }
+                    ) {
+                        Text("Import Vault (JSON)")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showBackupRestoreDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     if (showThemeDialog) {
         AlertDialog(
@@ -225,18 +290,24 @@ fun VaultSettingScreen(
                         icon = Icons.Default.Backup,
                         title = "Backup & Restore",
                         subtitle = "Encrypted File",
-                        onClick = onBackupRestoreClick
+                        onClick = { showBackupRestoreDialog = true }
                     )
                 }
             }
 
             item {
-                SectionTitle("About")
+                SectionTitle("Support")
                 SettingsCard {
                     SettingsItem(
+                        icon = Icons.Default.Info,
+                        title = "About",
+                        onClick = { onAboutClick() }
+                    )
+                    HorizontalDivider()
+                    SettingsItem(
                         icon = Icons.AutoMirrored.Filled.HelpOutline,
-                        title = "About & Help",
-                        onClick = onAboutClick
+                        title = "Help & Support",
+                        onClick = { onHelpClick() }
                     )
                 }
             }

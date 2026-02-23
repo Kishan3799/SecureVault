@@ -10,7 +10,8 @@ import javax.inject.Singleton
 @Singleton
 class VaultLockManager @Inject constructor() {
     private var unlockedAt: Long = 0L
-    private var autoLockMillis: Long = 60_000 // default 1 min
+    var autoLockMillis: Long = 60_000L // default 1 min
+        private set
 
     private val _isUnlockedFlow = MutableStateFlow(false)
     val isUnlockedFlow: StateFlow<Boolean> = _isUnlockedFlow.asStateFlow()
@@ -30,11 +31,11 @@ class VaultLockManager @Inject constructor() {
     }
 
     fun updateAutoLockMinutes(minutes: Int) {
-        autoLockMillis = minutes * 60_000L
+        autoLockMillis = if (minutes == -1) -1L else minutes * 60_000L
     }
 
     fun shouldAutoLock(): Boolean {
-        if (!isUnlocked) return false
+        if (!isUnlocked || autoLockMillis == -1L) return false
         return System.currentTimeMillis() - unlockedAt > autoLockMillis
     }
 

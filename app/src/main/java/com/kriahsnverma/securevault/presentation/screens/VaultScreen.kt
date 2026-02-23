@@ -1,5 +1,6 @@
 package com.kriahsnverma.securevault.presentation.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,16 +25,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.kriahsnverma.securevault.presentation.components.CategoryChip
 import com.kriahsnverma.securevault.presentation.components.PasswordCard
-import com.kriahsnverma.securevault.presentation.components.SecureVaultBottomNav
 import com.kriahsnverma.securevault.presentation.components.VaultSearchBar
-import com.kriahsnverma.securevault.presentation.navigation.BottomNavRoute
 import com.kriahsnverma.securevault.presentation.navigation.Screen
 import com.kriahsnverma.securevault.presentation.viewmodel.VaultViewModel
+import com.kriahsnverma.securevault.ui.theme.SecureVaultTheme
 
 @Composable
 fun VaultScreen(
@@ -55,11 +57,13 @@ fun VaultScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToAddPasswordScreen,
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add a new password")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -96,7 +100,7 @@ fun VaultScreen(
                             "Your Vault is Empty"
                         },
                         style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = if (uiState.searchQuery.isNotEmpty() || uiState.selectedCategory != "All") {
@@ -105,7 +109,8 @@ fun VaultScreen(
                             "Tap the '+' button to add your first password."
                         },
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -115,7 +120,6 @@ fun VaultScreen(
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Apply the key for better performance and stability
                     items(
                         items = uiState.passwords,
                         key = { it.id }
@@ -130,5 +134,21 @@ fun VaultScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun VaultScreenPreview() {
+    SecureVaultTheme {
+        VaultScreen(appNavController = rememberNavController())
+    }
+}
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun VaultScreenPreviewDark() {
+    SecureVaultTheme {
+        VaultScreen(appNavController = rememberNavController())
     }
 }

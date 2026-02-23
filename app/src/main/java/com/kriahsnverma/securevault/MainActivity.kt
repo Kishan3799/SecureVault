@@ -2,11 +2,11 @@ package com.kriahsnverma.securevault
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -29,18 +29,32 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        inactivityManager = InactivityManager {
-            vaultLockManager.lock() // This triggers MasterKeyHolder.clear()
-        }
-//        enableEdgeToEdge()
+        
+        inactivityManager = InactivityManager(
+            timeoutProvider = { vaultLockManager.autoLockMillis },
+            onTimeout = {
+                vaultLockManager.lock()
+            }
+        )
+
         setContent {
-            val viewModel : VaultSettingViewModel= hiltViewModel()
+            val viewModel: VaultSettingViewModel = hiltViewModel()
             val currentTheme by viewModel.appTheme.collectAsState()
+            val autoLockMinutes by viewModel.autoLockMinutes.collectAsState()
+
+            // Synchronize VaultLockManager with the saved preference
+            LaunchedEffect(autoLockMinutes) {
+                vaultLockManager.updateAutoLockMinutes(autoLockMinutes)
+                // Also reset the timer when the timeout changes
+                inactivityManager.resetTimer()
+            }
+
             val darkTheme = when(currentTheme) {
                 "Light" -> false
                 "Dark" -> true
                 else -> isSystemInDarkTheme()
             }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()

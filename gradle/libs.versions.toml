@@ -23,6 +23,7 @@ coroutines = "1.10.2"
 uiTextGoogleFonts = "1.10.0"
 cronetEmbedded = "143.7445.0"
 lifecycleProcess = "2.10.0"
+gson = "2.13.2"
 
 
 [libraries]
@@ -73,6 +74,7 @@ biometric = { module = "androidx.biometric:biometric", version.ref = "biometric"
 
 # Crypto Utils (if needed for password hashing)
 bcrypt = "at.favre.lib:bcrypt:0.10.2"
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 cronet-embedded = { group = "org.chromium.net", name = "cronet-embedded", version.ref = "cronetEmbedded" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }

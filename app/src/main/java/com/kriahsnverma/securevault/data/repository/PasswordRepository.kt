@@ -13,6 +13,8 @@ interface PasswordRepository {
                             category: String)
     fun getPasswords(): Flow<List<PasswordEntity>>
 
+    suspend fun getAllPasswordsSync(): List<PasswordEntity>
+
     suspend fun getPasswordById(id: Int): PasswordEntity?
 
     suspend fun updatePassword(id: Int,
@@ -27,7 +29,6 @@ interface PasswordRepository {
     suspend fun deletePasswordById(id:Int)
 
     suspend fun reEncryptAllData(oldKey: SecretKey, newKey: SecretKey)
+
+    suspend fun importPasswords(passwords: List<PasswordEntity>)
 }
-
-
-

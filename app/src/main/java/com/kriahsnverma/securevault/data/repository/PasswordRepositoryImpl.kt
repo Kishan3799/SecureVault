@@ -45,6 +45,10 @@ class PasswordRepositoryImpl @Inject constructor(
         return dao.getPasswords()
     }
 
+    override suspend fun getAllPasswordsSync(): List<PasswordEntity> {
+        return dao.getAllPasswordsSync()
+    }
+
     override suspend fun getPasswordById(id: Int): PasswordEntity? {
         return dao.getPasswordById(id)
     }
@@ -91,10 +95,14 @@ class PasswordRepositoryImpl @Inject constructor(
 
                 dao.updatePassword(entity.copy(encryptedPassword = newlyEncryptedSecret))
             } catch (e: Exception) {
-                // Log error or handle it - if one fails, we might want to know why, 
-                // but usually this happens if the oldKey is wrong.
                 e.printStackTrace()
             }
+        }
+    }
+
+    override suspend fun importPasswords(passwords: List<PasswordEntity>) {
+        passwords.forEach {
+            dao.insertPassword(it.copy(id = 0)) // Ensure new IDs are generated
         }
     }
 }

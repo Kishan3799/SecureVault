@@ -2,6 +2,7 @@ package com.kriahsnverma.securevault.presentation.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +36,7 @@ fun HomeDashboardScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             val navBackStackEntry by dashboardNavController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
@@ -56,15 +58,7 @@ fun HomeDashboardScreen(
             DashboardNavGraph(
                 dashboardNavController = dashboardNavController,
                 appNavController = appNavController,
-                onNavigateToUnlock = {
-                    appNavController.navigate(Screen.UnlockScreen.route){
-                        popUpTo(appNavController.graph.findStartDestination().id){
-                            inclusive = true
-                        }
-                    }
-                },
                 onNavigateToAddPassword = {
-                    // Use createRoute() to get the actual path instead of the template string
                     appNavController.navigate(Screen.AddPasswordScreen.createRoute())
                 },
                 vaultLockManager = vaultLockManager

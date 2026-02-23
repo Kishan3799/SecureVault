@@ -1,6 +1,5 @@
 package com.kriahsnverma.securevault.core.util
 
-import androidx.activity.result.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -9,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class InactivityManager(
+    private val timeoutProvider: () -> Long,
     private val onTimeout: () -> Unit,
 ) {
     private var job: Job? = null
@@ -16,8 +16,13 @@ class InactivityManager(
 
     fun resetTimer() {
         job?.cancel()
+        val timeout = timeoutProvider()
+
+        // If timeout is -1, it means 'Never'
+        if (timeout == -1L) return
+
         job = scope.launch {
-            delay(60_000) // 1 Minute
+            delay(timeout)
             onTimeout()
         }
     }

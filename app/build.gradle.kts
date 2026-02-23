@@ -92,6 +92,9 @@ dependencies {
     // Cronet
     implementation(libs.cronet.embedded)
 
+    // Gson
+    implementation(libs.gson)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

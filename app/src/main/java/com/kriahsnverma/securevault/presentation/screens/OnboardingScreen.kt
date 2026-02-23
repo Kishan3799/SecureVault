@@ -1,5 +1,7 @@
 package com.kriahsnverma.securevault.presentation.screens
 
+import android.content.res.Configuration
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,14 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -39,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,68 +47,65 @@ import kotlinx.coroutines.launch
 val onboardingPage = listOf(
     OnboardingPageItem(
         title = "Secure Vault",
-        description = "Store all your passwords securely",
-        image = R.drawable.ic_launcher_foreground
+        description = "Store all your passwords securely with industry-standard AES-256 encryption.",
+        image = R.drawable.onboarding1
     ),
     OnboardingPageItem(
-        title = "Generate ultra-strong passwords",
-        description = "Instantly create complex and unique passwords for every account.",
-        image = R.drawable.ic_launcher_foreground
+        title = "Password Generator",
+        description = "Instantly create complex and unique passwords for every account to stay safe.",
+        image = R.drawable.onboarding2
     ),
     OnboardingPageItem(
-        title = "Sync across all your devices",
-        description = "Access your protected data seamlessly on mobile, tablet, and desktop.",
-        image = R.drawable.ic_launcher_foreground
+        title = "Privacy First",
+        description = "Your data never leaves your device. We follow a zero-knowledge architecture.",
+        image = R.drawable.onbaording3
     )
 )
 
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(
     onNavigateToSetup: () -> Unit
 ) {
     val pageState = rememberPagerState(pageCount = { onboardingPage.size })
     val coroutineScope = rememberCoroutineScope()
-    val isLastPage by remember { derivedStateOf { pageState.currentPage == onboardingPage.size - 1 }}
+    val isLastPage by remember { derivedStateOf { pageState.currentPage == onboardingPage.size - 1 } }
 
-    Scaffold (
+    Scaffold(
         containerColor = MaterialTheme.colorScheme.primary
-    ){paddingValues ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            //1. Header Title
+            // Header Title
             Text(
-                text = "Password Manager",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.padding(top = 40.dp, bottom = 32.dp)
+                text = "SecureVault",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(top = 48.dp, bottom = 32.dp)
             )
 
             HorizontalPager(
                 state = pageState,
                 modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.Top
             ) { pageIndex ->
                 OnboardingPageContent(page = onboardingPage[pageIndex])
             }
 
-            // 5. Page Indicator Dots
+            // Page Indicator Dots
             PageIndicator(pagerState = pageState)
 
+            Spacer(modifier = Modifier.height(40.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 6. Action Button
+            // Action Button
             Button(
                 onClick = {
-                    if (isLastPage){
+                    if (isLastPage) {
                         onNavigateToSetup()
                     } else {
                         coroutineScope.launch {
@@ -126,20 +118,22 @@ fun OnboardingScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp)
-                    .padding(bottom = 24.dp), // Padding from the bottom edge
+                    .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary // More theme-aware
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    contentColor = MaterialTheme.colorScheme.primary
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Text(
-                    text = if (isLastPage) "Get Started" else "Next",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = if (isLastPage) "Get Started" else "Continue",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -148,20 +142,29 @@ fun OnboardingScreen(
 fun PageIndicator(pagerState: PagerState) {
     Row(
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
     ) {
         repeat(pagerState.pageCount) { index ->
-            // Determine color and size based on if it's the current page
-            val color = if (index == pagerState.currentPage)  MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-            val size = 8.dp
+            val isSelected = index == pagerState.currentPage
+            val width by animateDpAsState(
+                targetValue = if (isSelected) 32.dp else 8.dp,
+                animationSpec = tween(300),
+                label = "indicator_width"
+            )
+            val color = if (isSelected) 
+                MaterialTheme.colorScheme.onPrimary 
+            else 
+                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
 
             Box(
                 modifier = Modifier
-                    .size(size)
+                    .height(8.dp)
+                    .width(width)
                     .clip(CircleShape)
                     .background(color)
             )
-            // Add spacing between the dots
+            
             if (index < pagerState.pageCount - 1) {
                 Spacer(modifier = Modifier.width(8.dp))
             }
@@ -169,10 +172,20 @@ fun PageIndicator(pagerState: PagerState) {
     }
 }
 
-@Preview
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun OnBoardingPreview() {
     SecureVaultTheme {
         OnboardingScreen(onNavigateToSetup = {})
+    }
+}
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun OnBoardingPreviewDark() {
+    SecureVaultTheme {
+        OnboardingScreen(onNavigateToSetup = {
+
+        })
     }
 }

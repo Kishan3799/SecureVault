@@ -1,5 +1,6 @@
 package com.kriahsnverma.securevault.presentation.screens
 
+import android.content.res.Configuration
 import android.graphics.Matrix
 import android.graphics.fonts.Font
 import android.widget.ImageView
@@ -57,7 +58,7 @@ fun SplashScreen() {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Outlined.Lock,
+                painter = painterResource(R.drawable.splashicon),
                 contentDescription = "App Logo",
                 modifier = Modifier.size(120.dp),
                 tint = MaterialTheme.colorScheme.onPrimary
@@ -75,9 +76,19 @@ fun SplashScreen() {
     }
 }
 
-@Preview
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun SplashScreenPreview() {
+    // It's good practice to wrap previews in your app's theme
+    // to see how it will actually look.
+    SecureVaultTheme {
+        SplashScreen()
+    }
+}
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SplashScreenPreviewDark() {
     // It's good practice to wrap previews in your app's theme
     // to see how it will actually look.
     SecureVaultTheme {

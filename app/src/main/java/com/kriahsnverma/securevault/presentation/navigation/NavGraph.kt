@@ -23,6 +23,8 @@ import com.kriahsnverma.securevault.presentation.screens.UnlockScreen
 import com.kriahsnverma.securevault.presentation.screens.AutoUnlockScreen
 import com.kriahsnverma.securevault.presentation.screens.VaultScreen
 import com.kriahsnverma.securevault.presentation.screens.VaultSettingScreen
+import com.kriahsnverma.securevault.presentation.screens.AboutScreen
+import com.kriahsnverma.securevault.presentation.screens.HelpScreen
 import com.kriahsnverma.securevault.presentation.viewmodel.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
@@ -45,6 +47,9 @@ sealed class Screen(val route: String) {
     }
 
     object ChangeMasterPasswordScreen : Screen("change_master_password_screen")
+
+    object AboutScreen : Screen("about_screen")
+    object HelpScreen : Screen("help_screen")
 }
 
 // --- 2. The main entry point for your app's UI ---
@@ -106,11 +111,6 @@ fun RootNavGraph(
                     }
                 },
 
-                // Add a callback for what happens if the user presses back on the unlock screen
-                onNavigateBack = {
-                    navController.popBackStack(Screen.OnboardingScreen.route, false)
-                }
-
             )
         }
 
@@ -122,7 +122,9 @@ fun RootNavGraph(
                     }
                 },
                 onNavigateToPasswordUnlock = {
-                    navController.navigate(Screen.UnlockScreen.route)
+                    navController.navigate(Screen.UnlockScreen.route) {
+                        popUpTo(Screen.AutoUnlockScreen.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -170,6 +172,14 @@ fun RootNavGraph(
                 }
             )
         }
+
+        composable(Screen.AboutScreen.route) {
+            AboutScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.HelpScreen.route) {
+            HelpScreen(onBack = { navController.popBackStack() })
+        }
     }
 }
 
@@ -178,7 +188,6 @@ fun RootNavGraph(
 fun DashboardNavGraph(
     dashboardNavController: NavHostController,
     appNavController: NavHostController,
-    onNavigateToUnlock: () -> Unit,
     onNavigateToAddPassword: () -> Unit,
     vaultLockManager: VaultLockManager
 ) {
@@ -199,7 +208,12 @@ fun DashboardNavGraph(
                     appNavController.navigate(Screen.ChangeMasterPasswordScreen.route)
                 },
                 onBackupRestoreClick = {},
-                onAboutClick = {},
+                onAboutClick = {
+                    appNavController.navigate(Screen.AboutScreen.route)
+                },
+                onHelpClick = {
+                    appNavController.navigate(Screen.HelpScreen.route)
+                },
                 vaultLockManager = vaultLockManager
             )
         }
