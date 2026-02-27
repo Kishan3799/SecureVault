@@ -1,8 +1,11 @@
 package com.kriahsnverma.securevault.presentation.navigation
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -191,6 +194,7 @@ fun DashboardNavGraph(
     onNavigateToAddPassword: () -> Unit,
     vaultLockManager: VaultLockManager
 ) {
+    val context = LocalContext.current
     NavHost(dashboardNavController, startDestination = BottomNavRoute.Home.route) {
         composable(BottomNavRoute.Home.route) {
             VaultScreen(
@@ -213,6 +217,14 @@ fun DashboardNavGraph(
                 },
                 onHelpClick = {
                     appNavController.navigate(Screen.HelpScreen.route)
+                },
+                onPrivacyPolicyClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://kishan3799.github.io/securevault-legal/"))
+                    context.startActivity(intent)
+                },
+                onTermsClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://kishan3799.github.io/securevault-legal/terms.html"))
+                    context.startActivity(intent)
                 },
                 vaultLockManager = vaultLockManager
             )

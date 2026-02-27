@@ -15,9 +15,11 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.AlertDialog
@@ -56,6 +58,8 @@ fun VaultSettingScreen(
     onBackupRestoreClick: () -> Unit,
     onAboutClick: () -> Unit,
     onHelpClick: () -> Unit,
+    onPrivacyPolicyClick: () -> Unit,
+    onTermsClick: () -> Unit,
     viewModel: VaultSettingViewModel = hiltViewModel(),
     vaultLockManager: VaultLockManager
 ) {
@@ -308,6 +312,23 @@ fun VaultSettingScreen(
                         icon = Icons.AutoMirrored.Filled.HelpOutline,
                         title = "Help & Support",
                         onClick = { onHelpClick() }
+                    )
+                }
+            }
+
+            item {
+                SectionTitle("Legal")
+                SettingsCard {
+                    SettingsItem(
+                        icon = Icons.Default.PrivacyTip,
+                        title = "Privacy Policy",
+                        onClick = { onPrivacyPolicyClick() }
+                    )
+                    HorizontalDivider()
+                    SettingsItem(
+                        icon = Icons.Default.Description,
+                        title = "Terms and Conditions",
+                        onClick = { onTermsClick() }
                     )
                 }
             }
